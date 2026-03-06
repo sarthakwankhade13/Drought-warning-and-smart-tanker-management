@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Water Governance & Tanker Allocation System
 
 A comprehensive water resource management platform for monitoring drought conditions, optimizing tanker allocations, and managing water distribution in rural areas.
@@ -295,3 +296,6 @@ For support, email support@watergovernance.com or open an issue in the repositor
 ---
 
 **Made with ❤️ for sustainable water management**
+=======
+# Drought-warning-and-smart-tanker-management
+>>>>>>> 610d941a57a6d7775bd904833ab877d577a177db
