@@ -49,29 +49,36 @@ app.get('/api/health', (req, res) => {
 app.use(errorHandler);
 
 // Database connection and server start
-sequelize.authenticate()
-  .then(async () => {
+async function startServer() {
+  try {
+    // Test database connection
+    await sequelize.authenticate();
     console.log('✅ Database connected successfully to Railway MySQL');
     console.log(`📍 Host: ${process.env.DB_HOST}`);
     console.log(`📊 Database: ${process.env.DB_NAME}`);
     
-    // Check if tables exist, if not sync them
-    try {
-      await sequelize.sync({ alter: false });
-      console.log('✅ Database tables verified');
-    } catch (syncError) {
-      console.log('⚠️  Table sync skipped (tables already exist)');
-    }
+    // Sync database (don't alter existing tables)
+    await sequelize.sync({ force: false, alter: false });
+    console.log('✅ Database tables ready');
     
+    // Start server
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`🌐 API available at: http://localhost:${PORT}/api`);
+      console.log(`🌐 Health check: http://localhost:${PORT}/api/health`);
 
       // Start automatic data sync (runs now + every 12 hours)
-      startDataSyncScheduler();
+      try {
+        startDataSyncScheduler();
+      } catch (syncError) {
+        console.error('⚠️  Weather sync scheduler failed:', syncError.message);
+      }
     });
-  })
-  .catch(err => {
-    console.error('❌ Database connection failed:', err.message);
+  } catch (err) {
+    console.error('❌ Server startup failed:', err.message);
+    console.error(err);
     process.exit(1);
-  });
+  }
+}
+
+startServer();
