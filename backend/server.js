@@ -68,11 +68,12 @@ async function startServer() {
       console.log(`🌐 Health check: http://localhost:${PORT}/api/health`);
 
       // Start automatic data sync (runs now + every 12 hours)
-      try {
-        startDataSyncScheduler();
-      } catch (syncError) {
-        console.error('⚠️  Weather sync scheduler failed:', syncError.message);
-      }
+      // Temporarily disabled to fix deployment
+      // try {
+      //   startDataSyncScheduler();
+      // } catch (syncError) {
+      //   console.error('⚠️  Weather sync scheduler failed:', syncError.message);
+      // }
     });
   } catch (err) {
     console.error('❌ Server startup failed:', err.message);
