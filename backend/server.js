@@ -53,31 +53,17 @@ async function startServer() {
   try {
     // Test database connection
     await sequelize.authenticate();
-    console.log('✅ Database connected successfully to Railway MySQL');
+    console.log('✅ Database connected successfully');
     console.log(`📍 Host: ${process.env.DB_HOST}`);
     console.log(`📊 Database: ${process.env.DB_NAME}`);
     
-    // Sync database (don't alter existing tables)
-    await sequelize.sync({ force: false, alter: false });
-    console.log('✅ Database tables ready');
-    
-    // Start server
+    // Start server without syncing (tables already exist in Railway)
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`🌐 API available at: http://localhost:${PORT}/api`);
-      console.log(`🌐 Health check: http://localhost:${PORT}/api/health`);
-
-      // Start automatic data sync (runs now + every 12 hours)
-      // Temporarily disabled to fix deployment
-      // try {
-      //   startDataSyncScheduler();
-      // } catch (syncError) {
-      //   console.error('⚠️  Weather sync scheduler failed:', syncError.message);
-      // }
+      console.log(`🌐 API available`);
     });
   } catch (err) {
-    console.error('❌ Server startup failed:', err.message);
-    console.error(err);
+    console.error('❌ Startup failed:', err.message);
     process.exit(1);
   }
 }
