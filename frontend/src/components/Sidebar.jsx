@@ -25,6 +25,7 @@ const Sidebar = () => {
   const localUserMenuItems = [
     { path: '/local', icon: '🏠', label: 'My Dashboard', desc: 'Home' },
     { path: '/local/village', icon: '🏘️', label: 'My Village', desc: 'Village Data' },
+    { path: '/local/weather', icon: '🌤️', label: 'Weather Forecast', desc: '7-Day Forecast' },
     { path: '/local/tankers', icon: '🚛', label: 'Track Tankers', desc: 'Deliveries' },
     { path: '/local/report', icon: '📝', label: 'Report Shortage', desc: 'Submit Report' },
     { path: '/local/submit-alert', icon: '📢', label: 'Submit Alert', desc: 'Report Issue' },

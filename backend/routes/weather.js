@@ -83,7 +83,7 @@ router.post('/sync', authenticate, authorize(['admin']), async (req, res, next) 
   }
 });
 
-// Get forecast for a village
+// Get forecast for a village (7-day detailed forecast)
 router.get('/forecast/:villageId', authenticate, async (req, res, next) => {
   try {
     const village = await Village.findByPk(req.params.villageId);
@@ -92,7 +92,8 @@ router.get('/forecast/:villageId', authenticate, async (req, res, next) => {
       return res.status(404).json({ error: 'Village not found' });
     }
 
-    const forecast = await weatherService.fetchForecast(village.name);
+    const days = parseInt(req.query.days) || 7;
+    const forecast = await weatherService.fetchCompleteForecast(village.name, days);
     
     res.json({
       village: {

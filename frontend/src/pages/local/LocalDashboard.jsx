@@ -11,6 +11,8 @@ const LocalDashboard = () => {
     const [allocations, setAllocations] = useState([]);
     const [wsi, setWsi] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [lastUpdated, setLastUpdated] = useState(null);
 
     useEffect(() => {
         loadDashboardData();
@@ -18,20 +20,32 @@ const LocalDashboard = () => {
 
     const loadDashboardData = async () => {
         try {
+            if (!user?.village_id) {
+                console.error('No village_id found for user');
+                setLoading(false);
+                return;
+            }
+
             const [villageRes, alertsRes, allocationRes] = await Promise.all([
                 villageAPI.getById(user.village_id),
                 alertAPI.getMyVillage(),
                 tankerAPI.getMyVillage()
             ]);
-            setVillageData(villageRes.data);
-            setAlerts(alertsRes.data);
-            setAllocations(allocationRes.data);
+            
+            // Set village data with real-time population
+            const village = villageRes.data;
+            console.log('Loaded village data:', village);
+            setVillageData(village);
+            setAlerts(alertsRes.data || []);
+            setAllocations(allocationRes.data || []);
+            setLastUpdated(new Date());
 
             // Try to load WSI data
             try {
                 const wsiRes = await analysisAPI.getWSI(user.village_id);
                 setWsi(wsiRes.data);
-            } catch {
+            } catch (wsiErr) {
+                console.log('WSI data not available:', wsiErr.message);
                 // WSI might not be available
             }
         } catch (err) {
@@ -41,8 +55,14 @@ const LocalDashboard = () => {
         }
     };
 
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        await loadDashboardData();
+        setTimeout(() => setRefreshing(false), 1000);
+    };
+
     const getStoragePercentage = () => {
-        if (!villageData) return 0;
+        if (!villageData || !villageData.storage_capacity || !villageData.current_storage) return 0;
         return Math.round((villageData.current_storage / villageData.storage_capacity) * 100);
     };
 
@@ -79,12 +99,41 @@ const LocalDashboard = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-8"
             >
-                <h1 className="text-3xl font-bold text-gray-800">
-                    Welcome, {user?.username} 👋
-                </h1>
-                <p className="text-gray-600 mt-1">
-                    📍 {user?.village?.name}, {user?.village?.district} — Here's your village water status
-                </p>
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-800">
+                            Welcome, {user?.username} 👋
+                        </h1>
+                        <p className="text-gray-600 mt-1">
+                            📍 {user?.village?.name}, {user?.village?.district} — Here's your village water status
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        {lastUpdated && (
+                            <div className="text-right">
+                                <p className="text-xs text-gray-500">Last Updated</p>
+                                <p className="text-sm font-semibold text-gray-700">
+                                    {lastUpdated.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                            </div>
+                        )}
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={handleRefresh}
+                            disabled={refreshing}
+                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all font-medium shadow-md disabled:opacity-50"
+                        >
+                            <motion.span
+                                animate={refreshing ? { rotate: 360 } : {}}
+                                transition={{ duration: 1, repeat: refreshing ? Infinity : 0, ease: "linear" }}
+                            >
+                                🔄
+                            </motion.span>
+                            {refreshing ? 'Refreshing...' : 'Refresh'}
+                        </motion.button>
+                    </div>
+                </div>
             </motion.div>
 
             {/* Stats Cards */}
@@ -109,8 +158,12 @@ const LocalDashboard = () => {
                         ></div>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
-                        {villageData ? `${Number(villageData.current_storage).toLocaleString()}L / ${Number(villageData.storage_capacity).toLocaleString()}L` : '—'}
+                        {villageData ? `${Number(villageData.current_storage).toLocaleString('en-IN')}L / ${Number(villageData.storage_capacity).toLocaleString('en-IN')}L` : 'Loading...'}
                     </p>
+                    <div className="mt-2 flex items-center gap-1">
+                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                        <span className="text-xs text-green-600 font-medium">Live Data</span>
+                    </div>
                 </motion.div>
 
                 <motion.div
@@ -158,11 +211,17 @@ const LocalDashboard = () => {
                     <div className="flex items-center justify-between mb-3">
                         <span className="text-3xl">👥</span>
                         <span className="text-2xl font-bold text-purple-600">
-                            {villageData?.population?.toLocaleString() || '—'}
+                            {villageData?.population ? villageData.population.toLocaleString('en-IN') : '—'}
                         </span>
                     </div>
                     <h3 className="font-semibold text-gray-800">Population</h3>
-                    <p className="text-xs text-gray-500 mt-2">Residents in your village</p>
+                    <p className="text-xs text-gray-500 mt-2">
+                        {villageData?.population ? 'Residents in your village' : 'Loading...'}
+                    </p>
+                    <div className="mt-2 flex items-center gap-1">
+                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                        <span className="text-xs text-green-600 font-medium">Live Data</span>
+                    </div>
                 </motion.div>
             </div>
 
@@ -179,28 +238,97 @@ const LocalDashboard = () => {
                     </motion.div>
                 </Link>
 
-                <Link to="/local/tankers">
+                <Link to="/local/weather">
                     <motion.div
                         whileHover={{ scale: 1.02, y: -2 }}
                         className="card p-6 cursor-pointer border-2 border-transparent hover:border-blue-200"
+                    >
+                        <span className="text-4xl block mb-3">🌤️</span>
+                        <h3 className="font-bold text-gray-800 text-lg">Weather Forecast</h3>
+                        <p className="text-sm text-gray-600 mt-1">View 7-day weather forecast and rainfall predictions</p>
+                    </motion.div>
+                </Link>
+
+                <Link to="/local/tankers">
+                    <motion.div
+                        whileHover={{ scale: 1.02, y: -2 }}
+                        className="card p-6 cursor-pointer border-2 border-transparent hover:border-purple-200"
                     >
                         <span className="text-4xl block mb-3">🚛</span>
                         <h3 className="font-bold text-gray-800 text-lg">Track Tankers</h3>
                         <p className="text-sm text-gray-600 mt-1">View tanker deliveries assigned to your village</p>
                     </motion.div>
                 </Link>
+            </div>
 
+            {/* Additional Quick Links */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <Link to="/local/village">
                     <motion.div
                         whileHover={{ scale: 1.02, y: -2 }}
-                        className="card p-6 cursor-pointer border-2 border-transparent hover:border-purple-200"
+                        className="card p-6 cursor-pointer border-2 border-transparent hover:border-indigo-200"
                     >
                         <span className="text-4xl block mb-3">📊</span>
                         <h3 className="font-bold text-gray-800 text-lg">Village Data</h3>
                         <p className="text-sm text-gray-600 mt-1">View rainfall, groundwater, and WSI data</p>
                     </motion.div>
                 </Link>
+
+                <Link to="/local/alerts">
+                    <motion.div
+                        whileHover={{ scale: 1.02, y: -2 }}
+                        className="card p-6 cursor-pointer border-2 border-transparent hover:border-orange-200"
+                    >
+                        <span className="text-4xl block mb-3">🔔</span>
+                        <h3 className="font-bold text-gray-800 text-lg">My Alerts</h3>
+                        <p className="text-sm text-gray-600 mt-1">View all alerts and notifications for your village</p>
+                    </motion.div>
+                </Link>
             </div>
+
+            {/* Village Details Card */}
+            {villageData && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="card p-6 mb-8 bg-gradient-to-r from-blue-50 to-purple-50"
+                >
+                    <h2 className="text-xl font-bold text-gray-800 mb-4">🏘️ Village Information</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-white p-4 rounded-lg">
+                            <p className="text-xs text-gray-500 mb-1">Village Name</p>
+                            <p className="font-bold text-gray-800">{villageData.name}</p>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg">
+                            <p className="text-xs text-gray-500 mb-1">District</p>
+                            <p className="font-bold text-gray-800">{villageData.district}</p>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg">
+                            <p className="text-xs text-gray-500 mb-1">State</p>
+                            <p className="font-bold text-gray-800">{villageData.state}</p>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg">
+                            <p className="text-xs text-gray-500 mb-1">Total Population</p>
+                            <p className="font-bold text-purple-600 text-lg">
+                                {villageData.population.toLocaleString('en-IN')} people
+                            </p>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg">
+                            <p className="text-xs text-gray-500 mb-1">Storage Capacity</p>
+                            <p className="font-bold text-blue-600 text-lg">
+                                {Number(villageData.storage_capacity).toLocaleString('en-IN')} L
+                            </p>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg">
+                            <p className="text-xs text-gray-500 mb-1">Current Storage</p>
+                            <p className={`font-bold text-lg ${getStorageTextColor()}`}>
+                                {Number(villageData.current_storage).toLocaleString('en-IN')} L
+                            </p>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
 
             {/* Recent Alerts */}
             {activeAlerts.length > 0 && (

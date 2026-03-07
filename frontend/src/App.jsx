@@ -17,6 +17,7 @@ import TrackTankers from './pages/local/TrackTankers';
 import ReportShortage from './pages/local/ReportShortage';
 import SubmitAlert from './pages/local/SubmitAlert';
 import MyAlerts from './pages/local/MyAlerts';
+import WeatherForecast from './pages/local/WeatherForecast';
 
 function AppContent() {
   const { isAuthenticated, isAdmin, loading } = useAuth();
@@ -92,6 +93,11 @@ function AppContent() {
           <Route path="/local/village" element={
             <ProtectedRoute allowedRoles={['local_user']}>
               <MyVillageData />
+            </ProtectedRoute>
+          } />
+          <Route path="/local/weather" element={
+            <ProtectedRoute allowedRoles={['local_user']}>
+              <WeatherForecast />
             </ProtectedRoute>
           } />
           <Route path="/local/tankers" element={

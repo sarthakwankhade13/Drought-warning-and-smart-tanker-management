@@ -128,6 +128,73 @@ class WeatherService {
     return results;
   }
 
+  // Get 7-day forecast from WeatherAPI.com
+  async fetchWeatherApiForecast(city, days = 7) {
+    try {
+      if (!this.weatherApiKey) {
+        throw new Error('WeatherAPI key not configured');
+      }
+
+      const response = await axios.get(`${this.weatherApiBaseUrl}/forecast.json`, {
+        params: {
+          key: this.weatherApiKey,
+          q: city,
+          days: days,
+          aqi: 'no',
+          alerts: 'yes'
+        },
+        timeout: 10000
+      });
+
+      return {
+        source: 'WeatherAPI',
+        city: response.data.location.name,
+        region: response.data.location.region,
+        current: {
+          temperature: response.data.current.temp_c,
+          humidity: response.data.current.humidity,
+          pressure: response.data.current.pressure_mb,
+          rainfall: response.data.current.precip_mm,
+          description: response.data.current.condition.text,
+          icon: response.data.current.condition.icon,
+          windSpeed: response.data.current.wind_kph,
+          clouds: response.data.current.cloud,
+          feelsLike: response.data.current.feelslike_c,
+          uv: response.data.current.uv,
+          visibility: response.data.current.vis_km
+        },
+        forecast: response.data.forecast.forecastday.map(day => ({
+          date: day.date,
+          maxTemp: day.day.maxtemp_c,
+          minTemp: day.day.mintemp_c,
+          avgTemp: day.day.avgtemp_c,
+          maxWind: day.day.maxwind_kph,
+          totalRainfall: day.day.totalprecip_mm,
+          avgHumidity: day.day.avghumidity,
+          chanceOfRain: day.day.daily_chance_of_rain,
+          condition: day.day.condition.text,
+          icon: day.day.condition.icon,
+          sunrise: day.astro.sunrise,
+          sunset: day.astro.sunset,
+          moonPhase: day.astro.moon_phase,
+          hourly: day.hour.map(h => ({
+            time: h.time,
+            temp: h.temp_c,
+            humidity: h.humidity,
+            rainfall: h.precip_mm,
+            chanceOfRain: h.chance_of_rain,
+            condition: h.condition.text,
+            icon: h.condition.icon
+          }))
+        })),
+        alerts: response.data.alerts?.alert || []
+      };
+    } catch (error) {
+      console.error('WeatherAPI Forecast error:', error.message);
+      throw error;
+    }
+  }
+
   // Get 5-day forecast from OpenWeatherMap
   async fetchForecast(city) {
     try {
@@ -158,6 +225,21 @@ class WeatherService {
     } catch (error) {
       console.error('Forecast API error:', error.message);
       throw error;
+    }
+  }
+
+  // Get comprehensive forecast with fallback
+  async fetchCompleteForecast(city, days = 7) {
+    try {
+      // Try WeatherAPI first (supports 7-day forecast)
+      return await this.fetchWeatherApiForecast(city, days);
+    } catch (error) {
+      console.log('WeatherAPI forecast failed, trying OpenWeatherMap...');
+      try {
+        return await this.fetchForecast(city);
+      } catch (error2) {
+        throw new Error('Both weather forecast APIs failed');
+      }
     }
   }
 }
