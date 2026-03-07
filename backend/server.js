@@ -41,18 +41,22 @@ app.get('/api/health', (req, res) => {
 
 app.use(errorHandler);
 
-// Database sync and server start
-sequelize.sync()
+// Database connection and server start
+sequelize.authenticate()
   .then(() => {
-    console.log('Database connected and synced');
-    console.log('Tables created/updated successfully');
+    console.log('✅ Database connected successfully to Railway MySQL');
+    console.log(`📍 Host: ${process.env.DB_HOST}`);
+    console.log(`📊 Database: ${process.env.DB_NAME}`);
+    
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`🌐 API available at: http://localhost:${PORT}/api`);
 
       // Start automatic data sync (runs now + every 12 hours)
       startDataSyncScheduler();
     });
   })
   .catch(err => {
-    console.error('Database connection failed:', err);
+    console.error('❌ Database connection failed:', err.message);
+    process.exit(1);
   });
