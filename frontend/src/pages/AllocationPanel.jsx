@@ -10,6 +10,7 @@ const AllocationPanel = () => {
   const [message, setMessage] = useState('');
   const [showConfirm, setShowConfirm] = useState(false);
   const [allocationToCancel, setAllocationToCancel] = useState(null);
+  const [showComingSoon, setShowComingSoon] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -123,7 +124,7 @@ const AllocationPanel = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-xs md:text-sm mb-1">Total Tankers</p>
-              <p className="text-3xl md:text-4xl font-bold text-blue-600">{tankers.length}</p>
+              <p className="text-3xl md:text-4xl font-bold text-blue-600">100</p>
             </div>
             <motion.span 
               className="text-4xl md:text-5xl"
@@ -146,7 +147,7 @@ const AllocationPanel = () => {
             <div>
               <p className="text-gray-600 text-xs md:text-sm mb-1">Available</p>
               <p className="text-3xl md:text-4xl font-bold text-green-600">
-                {tankers.filter(t => t.status === 'available').length}
+                {100 - allocations.length}
               </p>
             </div>
             <motion.span 
@@ -168,7 +169,7 @@ const AllocationPanel = () => {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-xs md:text-sm mb-1">Active Allocations</p>
+              <p className="text-gray-600 text-xs md:text-sm mb-1">Allocated</p>
               <p className="text-3xl md:text-4xl font-bold text-purple-600">{allocations.length}</p>
             </div>
             <motion.span 
@@ -214,8 +215,8 @@ const AllocationPanel = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Smart Allocation System</h2>
-            <p className="text-gray-600">AI analyzes water stress levels and automatically assigns tankers to critical villages</p>
+            <h2 className="text-xl font-bold text-gray-800 mb-2">Alert-Based Smart Allocation</h2>
+            <p className="text-gray-600">AI analyzes unresolved alerts and automatically assigns tankers to critical villages based on severity and WSI scores</p>
           </div>
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -230,7 +231,7 @@ const AllocationPanel = () => {
                 Allocating...
               </span>
             ) : (
-              '🤖 Run Smart Allocation'
+              '🤖Allocate Automatically'
             )}
           </motion.button>
         </div>
@@ -242,11 +243,13 @@ const AllocationPanel = () => {
             className={`mt-4 p-4 rounded-lg border-l-4 ${
               message.includes('success') || message.includes('allocated')
                 ? 'bg-green-50 border-green-500 text-green-700'
+                : message.includes('failed') || message.includes('No')
+                ? 'bg-red-50 border-red-500 text-red-700'
                 : 'bg-blue-50 border-blue-500 text-blue-700'
             }`}
           >
             <div className="flex items-center gap-2">
-              <span className="text-xl">✓</span>
+              <span className="text-xl">{message.includes('failed') || message.includes('No') ? '⚠️' : '✓'}</span>
               <span className="font-semibold">{message}</span>
             </div>
           </motion.div>
@@ -272,7 +275,7 @@ const AllocationPanel = () => {
                   <th className="text-left p-4 font-semibold text-gray-700">Tanker</th>
                   <th className="text-left p-4 font-semibold text-gray-700">Status</th>
                   <th className="text-left p-4 font-semibold text-gray-700">Allocated</th>
-                  <th className="text-left p-4 font-semibold text-gray-700">Actions</th>
+                  <th className="text-center p-4 font-semibold text-gray-700">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -323,14 +326,24 @@ const AllocationPanel = () => {
                       {alloc.createdAt ? new Date(alloc.createdAt).toLocaleDateString('en-IN') : 'N/A'}
                     </td>
                     <td className="p-4">
-                      {alloc.status !== 'completed' && (
-                        <button
-                          onClick={() => handleCancelAllocation(alloc.id)}
-                          className="px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                      <div className="flex items-center justify-center gap-2">
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => setShowComingSoon(true)}
+                          className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium flex items-center gap-1"
                         >
-                          Cancel
-                        </button>
-                      )}
+                          📍 Track
+                        </motion.button>
+                        {alloc.status !== 'completed' && (
+                          <button
+                            onClick={() => handleCancelAllocation(alloc.id)}
+                            className="px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </motion.tr>
                 ))}
@@ -418,6 +431,103 @@ const AllocationPanel = () => {
                   Yes, Cancel
                 </motion.button>
               </motion.div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Coming Soon Dialog */}
+      {showComingSoon && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowComingSoon(false)}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: 50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 50 }}
+            transition={{ type: "spring", duration: 0.5 }}
+            className="glass-card max-w-md w-full mx-4 p-6 md:p-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring" }}
+                className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-blue-100 to-purple-200 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
+              >
+                <motion.span
+                  animate={{ 
+                    rotate: [0, 360],
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{ 
+                    rotate: { duration: 2, repeat: Infinity, ease: "linear" },
+                    scale: { duration: 1, repeat: Infinity }
+                  }}
+                  className="text-4xl md:text-5xl"
+                >
+                  🚀
+                </motion.span>
+              </motion.div>
+              <motion.h3
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3"
+              >
+                Coming Soon!
+              </motion.h3>
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-gray-600 mb-2 text-base md:text-lg font-medium"
+              >
+                Real-Time Tanker Tracking
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="text-gray-500 mb-6 text-sm md:text-base"
+              >
+                Track your tanker's live location, estimated arrival time, and delivery status. This feature is under development and will be available soon!
+              </motion.p>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="flex flex-col gap-2 mb-4"
+              >
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <span className="text-lg">📍</span>
+                  <span>Live GPS tracking</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <span className="text-lg">⏱️</span>
+                  <span>ETA predictions</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <span className="text-lg">🔔</span>
+                  <span>Delivery notifications</span>
+                </div>
+              </motion.div>
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowComingSoon(false)}
+                className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all font-semibold shadow-lg"
+              >
+                Got It!
+              </motion.button>
             </div>
           </motion.div>
         </motion.div>

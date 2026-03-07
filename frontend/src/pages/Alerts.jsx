@@ -78,6 +78,24 @@ const Alerts = () => {
     }
   };
 
+  const handleGenerateAlerts = async () => {
+    setLoading(true);
+    try {
+      const response = await alertAPI.generateAutomatic();
+      setMessage({ 
+        type: 'success', 
+        text: `✅ Generated ${response.data.created} new alerts, updated ${response.data.updated} existing alerts` 
+      });
+      loadAlerts();
+      setTimeout(() => setMessage(null), 5000);
+    } catch (error) {
+      setMessage({ type: 'error', text: '❌ Failed to generate alerts' });
+      setTimeout(() => setMessage(null), 3000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredAlerts = alerts.filter(alert => {
     if (filter === 'all') return !alert.is_resolved;
     if (filter === 'resolved') return alert.is_resolved;
@@ -103,8 +121,21 @@ const Alerts = () => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">Alerts & Notifications</h1>
-        <p className="text-gray-600">अलर्ट और सूचनाएं - Real-time water crisis alerts for Vidarbha</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">Alerts & Notifications</h1>
+            <p className="text-gray-600">अलर्ट और सूचनाएं - Real-time water crisis alerts for Vidarbha</p>
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleGenerateAlerts}
+            disabled={loading}
+            className="btn-primary px-6 py-3"
+          >
+            {loading ? '⏳ Generating...' : '🤖 Generate Alerts'}
+          </motion.button>
+        </div>
       </motion.div>
 
       {/* Stats */}

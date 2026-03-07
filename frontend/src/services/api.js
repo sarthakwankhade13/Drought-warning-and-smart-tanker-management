@@ -71,7 +71,9 @@ export const alertAPI = {
   getDistricts: () => api.get('/alerts/districts'),
   create: (data) => api.post('/alerts', data),
   resolve: (id) => api.put(`/alerts/${id}/resolve`),
-  delete: (id) => api.delete(`/alerts/${id}`)
+  delete: (id) => api.delete(`/alerts/${id}`),
+  generateAutomatic: () => api.post('/alerts/generate'),
+  submitUserAlert: (data) => api.post('/alerts/submit', data)
 };
 
 export const reportAPI = {

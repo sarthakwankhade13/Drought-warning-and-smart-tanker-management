@@ -15,6 +15,7 @@ import LocalDashboard from './pages/local/LocalDashboard';
 import MyVillageData from './pages/local/MyVillageData';
 import TrackTankers from './pages/local/TrackTankers';
 import ReportShortage from './pages/local/ReportShortage';
+import SubmitAlert from './pages/local/SubmitAlert';
 import MyAlerts from './pages/local/MyAlerts';
 
 function AppContent() {
@@ -106,6 +107,11 @@ function AppContent() {
           <Route path="/local/alerts" element={
             <ProtectedRoute allowedRoles={['local_user']}>
               <MyAlerts />
+            </ProtectedRoute>
+          } />
+          <Route path="/local/submit-alert" element={
+            <ProtectedRoute allowedRoles={['local_user']}>
+              <SubmitAlert />
             </ProtectedRoute>
           } />
 

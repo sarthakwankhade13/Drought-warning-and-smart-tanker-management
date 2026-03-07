@@ -1,6 +1,7 @@
 import express from 'express';
 import { Alert, Village } from '../models/index.js';
 import { authenticate, authorize } from '../middleware/auth.js';
+import { generateAutomaticAlerts, resolveImprovedAlerts } from '../services/alertGenerator.js';
 
 const router = express.Router();
 
@@ -106,6 +107,63 @@ router.delete('/:id', authenticate, authorize('admin'), async (req, res, next) =
     }
     await alert.destroy();
     res.json({ message: 'Alert deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// AUTOMATIC ALERT GENERATION - Admin only
+router.post('/generate', authenticate, authorize('admin'), async (req, res, next) => {
+  try {
+    console.log('🤖 Manual alert generation triggered by admin');
+    const result = await generateAutomaticAlerts();
+    await resolveImprovedAlerts();
+    
+    res.json({
+      success: true,
+      message: 'Automatic alert generation completed',
+      created: result.created,
+      updated: result.updated
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// USER-SUBMITTED ALERT - Local users can submit alerts
+router.post('/submit', authenticate, async (req, res, next) => {
+  try {
+    const { title, description, severity } = req.body;
+    const village_id = req.user.village_id;
+
+    if (!village_id) {
+      return res.status(403).json({ error: 'No village linked to this user' });
+    }
+
+    if (!title || !description) {
+      return res.status(400).json({ error: 'Title and description are required' });
+    }
+
+    // Create user-submitted alert
+    const alert = await Alert.create({
+      village_id,
+      severity: severity || 'alert',
+      message: `📝 User Report: ${title} - ${description}`,
+      wsi_score: null,
+      is_resolved: false,
+      user_submitted: true,
+      submitted_by: req.user.id
+    });
+
+    const alertWithVillage = await Alert.findByPk(alert.id, {
+      include: [{ model: Village, attributes: ['name', 'district'] }]
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Alert submitted successfully',
+      alert: alertWithVillage
+    });
   } catch (error) {
     next(error);
   }

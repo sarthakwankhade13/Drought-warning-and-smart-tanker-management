@@ -31,6 +31,14 @@ const Alert = sequelize.define('Alert', {
   is_resolved: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
+  },
+  user_submitted: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  submitted_by: {
+    type: DataTypes.INTEGER,
+    allowNull: true
   }
 });
 

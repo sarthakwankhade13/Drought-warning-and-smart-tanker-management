@@ -1,4 +1,4 @@
-import { Village, Tanker, Allocation } from '../models/index.js';
+import { Village, Tanker, Allocation, Alert } from '../models/index.js';
 import { WSICalculator } from './wsiCalculator.js';
 
 export class AllocationService {
@@ -42,32 +42,56 @@ export class AllocationService {
         };
       }
 
-      // Get all villages with priority scores
-      const villages = await Village.findAll();
-      
-      if (villages.length === 0) {
+      // Get unresolved alerts with their villages
+      const alerts = await Alert.findAll({
+        where: { is_resolved: false },
+        include: [{ 
+          model: Village,
+          attributes: ['id', 'name', 'district', 'population', 'current_storage', 'storage_capacity']
+        }],
+        order: [
+          ['severity', 'DESC'], // Critical first
+          ['wsi_score', 'DESC'], // Higher WSI first
+          ['createdAt', 'ASC'] // Older alerts first
+        ]
+      });
+
+      if (alerts.length === 0) {
         return {
           success: false,
-          message: 'No villages found in database',
+          message: 'No unresolved alerts found. Generate alerts first.',
           allocations: []
         };
       }
 
+      // Calculate priority for each alert's village
       const priorities = [];
-      for (const village of villages) {
+      for (const alert of alerts) {
+        if (!alert.Village) continue;
+        
         try {
-          const priority = await this.calculatePriority(village.id);
-          priorities.push(priority);
+          const priority = await this.calculatePriority(alert.Village.id);
+          
+          // Boost priority based on alert severity
+          let severityBoost = 0;
+          if (alert.severity === 'critical') severityBoost = 20;
+          else if (alert.severity === 'alert') severityBoost = 10;
+          
+          priorities.push({
+            ...priority,
+            priority: priority.priority + severityBoost,
+            alertId: alert.id,
+            severity: alert.severity
+          });
         } catch (error) {
-          console.error(`Error calculating priority for village ${village.id}:`, error.message);
-          // Continue with other villages
+          console.error(`Error calculating priority for village ${alert.Village.id}:`, error.message);
         }
       }
 
       if (priorities.length === 0) {
         return {
           success: false,
-          message: 'Could not calculate priorities for any village',
+          message: 'Could not calculate priorities for any alert',
           allocations: []
         };
       }
@@ -99,14 +123,17 @@ export class AllocationService {
           tankerId: tanker.id,
           tankerRegistration: tanker.registration_number,
           villageId: village.villageId,
-          priorityScore: village.priority
+          priorityScore: village.priority,
+          severity: village.severity
         });
       }
 
       return {
         success: true,
-        message: `Successfully allocated ${allocations.length} tanker(s) to critical villages`,
-        allocations
+        message: `Successfully allocated ${allocations.length} tanker(s) to ${allocations.length} critical village(s) based on alerts`,
+        allocations,
+        totalAlerts: alerts.length,
+        totalTankers: availableTankers.length
       };
     } catch (error) {
       console.error('Allocation error:', error);

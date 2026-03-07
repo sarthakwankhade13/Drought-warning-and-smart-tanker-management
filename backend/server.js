@@ -42,7 +42,7 @@ app.get('/api/health', (req, res) => {
 app.use(errorHandler);
 
 // Database sync and server start
-sequelize.sync({ alter: false })
+sequelize.sync()
   .then(() => {
     console.log('Database connected and synced');
     console.log('Tables created/updated successfully');

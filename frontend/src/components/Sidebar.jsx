@@ -27,6 +27,7 @@ const Sidebar = () => {
     { path: '/local/village', icon: '🏘️', label: 'My Village', desc: 'Village Data' },
     { path: '/local/tankers', icon: '🚛', label: 'Track Tankers', desc: 'Deliveries' },
     { path: '/local/report', icon: '📝', label: 'Report Shortage', desc: 'Submit Report' },
+    { path: '/local/submit-alert', icon: '📢', label: 'Submit Alert', desc: 'Report Issue' },
     { path: '/local/alerts', icon: '🔔', label: 'Alerts', desc: 'Notifications' },
   ];
 
