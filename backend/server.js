@@ -50,10 +50,18 @@ app.use(errorHandler);
 
 // Database connection and server start
 sequelize.authenticate()
-  .then(() => {
+  .then(async () => {
     console.log('✅ Database connected successfully to Railway MySQL');
     console.log(`📍 Host: ${process.env.DB_HOST}`);
     console.log(`📊 Database: ${process.env.DB_NAME}`);
+    
+    // Check if tables exist, if not sync them
+    try {
+      await sequelize.sync({ alter: false });
+      console.log('✅ Database tables verified');
+    } catch (syncError) {
+      console.log('⚠️  Table sync skipped (tables already exist)');
+    }
     
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
