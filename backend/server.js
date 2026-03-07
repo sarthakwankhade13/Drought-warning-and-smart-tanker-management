@@ -20,7 +20,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5000'],
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://localhost:5000',
+    process.env.FRONTEND_URL,
+    'https://drought-warning-and-smart-tanker-ma.vercel.app',
+    'https://drought-warning-and-smart-tanker-management-mvracwrre.vercel.app'
+  ].filter(Boolean),
   credentials: true
 }));
 app.use(express.json());
