@@ -51,6 +51,14 @@ app.use(errorHandler);
 // Database connection and server start
 async function startServer() {
   try {
+    // Debug: Log database config
+    console.log('🔍 Database Config:');
+    console.log(`   Host: ${process.env.DB_HOST}`);
+    console.log(`   Port: ${process.env.DB_PORT}`);
+    console.log(`   User: ${process.env.DB_USER}`);
+    console.log(`   Database: ${process.env.DB_NAME}`);
+    console.log(`   SSL: ${process.env.DB_SSL}`);
+    
     // Test database connection
     await sequelize.authenticate();
     console.log('✅ Database connected successfully');
