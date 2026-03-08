@@ -20,7 +20,7 @@ api.interceptors.request.use((config) => {
 export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),
-  getVillages: () => api.get('/auth/villages'),
+  getVillages: () => api.get('/villages'),
   getMe: () => api.get('/auth/me')
 };
 
