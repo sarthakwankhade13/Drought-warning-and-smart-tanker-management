@@ -1,9 +1,8 @@
-<<<<<<< HEAD
-# Water Governance & Tanker Allocation System
+# 🌊 Water Governance & Tanker Allocation System
 
 A comprehensive water resource management platform for monitoring drought conditions, optimizing tanker allocations, and managing water distribution in rural areas.
 
-## 🌊 Overview
+## � Overview
 
 This system provides real-time drought monitoring, intelligent tanker allocation, and water resource management for villages in water-stressed regions. It combines weather data analysis, groundwater monitoring, and automated allocation algorithms to ensure efficient water distribution.
 
@@ -14,7 +13,7 @@ This system provides real-time drought monitoring, intelligent tanker allocation
 - **Interactive Heatmap**: Geographic visualization of water stress across villages
 - **Intelligent Tanker Allocation**: Automated priority-based tanker assignment
 - **Route Optimization**: Optimize delivery routes for tanker fleet
-- **Weather Integration**: Automatic sync with Open-Meteo API (every 12 hours)
+- **Weather Integration**: Automatic sync with Open-Meteo API
 - **Alert Management**: Severity-based alerts (normal/alert/critical)
 - **Data Analytics**: Comprehensive dashboard with charts and statistics
 
@@ -24,157 +23,127 @@ This system provides real-time drought monitoring, intelligent tanker allocation
 - **Report Shortages**: Submit water shortage reports
 - **Alert Notifications**: Receive critical water alerts
 
-## 🏗️ System Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     FRONTEND (React + Vite)                  │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │   Dashboard  │  │   Heatmap    │  │  Allocation  │      │
-│  └──────────────┘  └──────────────┘  └──────────────┘      │
-└─────────────────────────────────────────────────────────────┘
-                            ↕ REST API
-┌─────────────────────────────────────────────────────────────┐
-│                  BACKEND (Node.js + Express)                 │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │  DroughtEngine │ AllocationService │ WeatherSync    │   │
-│  │  WSICalculator │ RouteOptimizer    │ DemandPredictor│   │
-│  └──────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
-                            ↕
-┌─────────────────────────────────────────────────────────────┐
-│              DATABASE (SQLite + Sequelize ORM)               │
-│  Villages │ Tankers │ Allocations │ Weather │ Alerts        │
-└─────────────────────────────────────────────────────────────┘
-                            ↕
-┌─────────────────────────────────────────────────────────────┐
-│              EXTERNAL API (Open-Meteo Weather)               │
-└─────────────────────────────────────────────────────────────┘
-```
-
 ## 🚀 Tech Stack
 
 ### Frontend
 - **React 18** - UI framework
-- **Vite** - Build tool
-- **React Router** - Navigation
-- **Tailwind CSS** - Styling
+- **Vite** - Build tool & dev server
+- **React Router** - Client-side routing
+- **Tailwind CSS** - Utility-first styling
 - **Recharts** - Data visualization
 - **Framer Motion** - Animations
 - **Axios** - HTTP client
+- **React Leaflet** - Interactive maps
 
 ### Backend
-- **Node.js** - Runtime
-- **Express** - Web framework
-- **Sequelize** - ORM
-- **SQLite** - Database
-- **JWT** - Authentication
+- **Node.js** - JavaScript runtime
+- **Express.js** - Web framework
+- **Sequelize ORM** - Database abstraction
+- **MySQL** - Relational database
+- **JWT** - Stateless authentication
 - **bcryptjs** - Password hashing
-- **Axios** - External API calls
+- **node-cron** - Scheduled tasks
 
 ## 📋 Prerequisites
 
 - Node.js (v16 or higher)
+- MySQL (v8.0 or higher)
 - npm or yarn
-- SQLite3
 
 ## 🛠️ Installation
 
-### 1. Clone the repository
+### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/water-governance-system.git
-cd water-governance-system
+git clone https://github.com/sarthakwankhade13/Drought-warning-and-smart-tanker-management.git
+cd Drought-warning-and-smart-tanker-management
 ```
 
 ### 2. Backend Setup
 ```bash
 cd backend
 npm install
-
-# Create .env file
-cp .env.example .env
 ```
 
-Edit `backend/.env`:
+Create `.env` file:
 ```env
 PORT=5000
-JWT_SECRET=your_secure_jwt_secret_key_here
-DB_PATH=./water_governance.db
-NODE_ENV=development
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+DB_NAME=water_governance
+JWT_SECRET=your_secure_jwt_secret_key
+
+# WSI Weight Configuration
+WSI_RAINFALL_WEIGHT=0.35
+WSI_GROUNDWATER_WEIGHT=0.30
+WSI_POPULATION_WEIGHT=0.20
+WSI_STORAGE_WEIGHT=0.15
+
+# Demand Calculation
+DAILY_WATER_PER_CAPITA=55
+HIGH_WSI_THRESHOLD=70
+HIGH_WSI_ADJUSTMENT=1.20
 ```
 
 ### 3. Frontend Setup
 ```bash
 cd frontend
 npm install
-
-# Create .env file
-cp .env.example .env
 ```
 
-Edit `frontend/.env`:
+Create `.env` file:
 ```env
 VITE_API_URL=http://localhost:5000/api
+VITE_GOOGLE_MAPS_API_KEY=your_google_maps_key
 ```
 
-### 4. Database Initialization
+### 4. Database Setup
 ```bash
 cd backend
-node create-db.js
+node init-db.js
 node seed-database.js
 ```
 
 ## 🎯 Running the Application
 
-### Start Backend Server
+### Start Backend
 ```bash
 cd backend
 npm start
-# or for development with auto-reload
-npm run dev
 ```
 Server runs on `http://localhost:5000`
 
-### Start Frontend Development Server
+### Start Frontend
 ```bash
 cd frontend
 npm run dev
 ```
-Frontend runs on `http://localhost:5173`
+Frontend runs on `http://localhost:3000`
 
-## 👤 Default Login Credentials
+## 👤 Default Credentials
 
-### Admin Account
-- **Username**: `admin`
-- **Password**: `admin123`
-
-### Local User Account
-- **Username**: `local_user`
-- **Password**: `local123`
+**Admin Account:**
+- Email: `admin@water.gov`
+- Password: `admin123`
 
 ## 📊 Core Algorithms
 
 ### Water Stress Index (WSI)
-```
-WSI = (Rainfall Deviation × 0.6) + (Groundwater Trend × 0.4)
+```javascript
+WSI = (Rainfall × 0.35) + (Groundwater × 0.30) + 
+      (Population × 0.20) + (Storage × 0.15)
 ```
 
 ### Priority Score Calculation
-```
-Priority = (WSI × 0.5) + (Population × 0.3) + (Storage Deficit × 0.2)
+```javascript
+Priority = WSI × Population Factor × Storage Deficit
 ```
 
 ### Severity Classification
 - **Normal**: WSI ≤ 30
 - **Alert**: 30 < WSI ≤ 70
 - **Critical**: WSI > 70
-
-## 🔄 Automated Processes
-
-- **Weather Sync**: Runs every 12 hours automatically
-- **Historical Backfill**: 8 months of rainfall data on first run
-- **Groundwater Estimation**: Based on 30-day rainfall patterns
-- **Alert Generation**: Triggered by severity thresholds
 
 ## 📁 Project Structure
 
@@ -189,18 +158,16 @@ water-governance-system/
 │   │   ├── droughtEngine.js
 │   │   ├── allocationService.js
 │   │   ├── wsiCalculator.js
-│   │   ├── weatherSync.js
-│   │   └── openMeteoService.js
+│   │   ├── weatherService.js
+│   │   └── routeOptimizer.js
 │   └── server.js        # Entry point
 ├── frontend/
 │   ├── src/
 │   │   ├── components/  # Reusable components
 │   │   ├── context/     # Auth context
 │   │   ├── pages/       # Route pages
-│   │   │   ├── local/   # Local user pages
-│   │   │   └── ...      # Admin pages
 │   │   ├── services/    # API client
-│   │   └── App.jsx      # Main app component
+│   │   └── App.jsx      # Main component
 │   └── index.html
 └── README.md
 ```
@@ -210,92 +177,84 @@ water-governance-system/
 ### Authentication
 - `POST /api/auth/login` - User login
 - `POST /api/auth/register` - User registration
+- `GET /api/auth/me` - Get current user
 
 ### Villages
 - `GET /api/villages` - List all villages
 - `GET /api/villages/:id` - Get village details
 - `POST /api/villages` - Create village (admin)
+- `PUT /api/villages/:id` - Update village (admin)
 
 ### Analysis
 - `GET /api/analysis/drought/:villageId` - Drought analysis
 - `GET /api/analysis/wsi/:villageId` - Water Stress Index
+- `GET /api/analysis/wsi` - All villages WSI
+- `GET /api/analysis/predict/:villageId` - Demand prediction
 
 ### Tankers
 - `GET /api/tankers` - List all tankers
-- `POST /api/tankers/allocate` - Allocate tankers (admin)
+- `POST /api/tankers` - Create tanker (admin)
+- `POST /api/tankers/allocate` - Auto-allocate tankers
+- `GET /api/tankers/allocations` - Get allocations
+- `POST /api/tankers/optimize-route` - Optimize route
 
 ### Weather
-- `GET /api/weather/rainfall/:villageId` - Rainfall data
-- `GET /api/weather/groundwater/:villageId` - Groundwater data
+- `GET /api/weather/village/:villageId` - Village weather
+- `GET /api/weather/forecast/:villageId` - Weather forecast
+- `POST /api/weather/sync` - Sync weather data
 
 ### Alerts
 - `GET /api/alerts` - List all alerts
+- `GET /api/alerts/active` - Active alerts only
 - `POST /api/alerts` - Create alert (admin)
+- `PUT /api/alerts/:id/resolve` - Resolve alert
 
-## 🧪 Testing
-
-### Backend Tests
-```bash
-cd backend
-node test-connection.js    # Test database connection
-node test-weather.js       # Test weather API
-node test-allocation.js    # Test allocation logic
-```
+### Reports
+- `POST /api/reports/water-shortage` - Submit shortage report
+- `GET /api/reports/my-reports` - User's reports
+- `GET /api/reports/all` - All reports (admin)
 
 ## 🔐 Security Features
 
 - JWT-based authentication
 - Role-based access control (Admin/Local User)
-- Password hashing with bcryptjs
-- Protected API routes
+- Password hashing with bcryptjs (10 rounds)
+- Protected API routes with middleware
 - CORS configuration
+- SQL injection prevention (Sequelize ORM)
 
 ## 🌐 External APIs
 
-- **Open-Meteo API**: Free weather data API
+- **Open-Meteo API**: Free weather data
   - Historical rainfall data
   - Daily precipitation updates
   - No API key required
 
-## 📈 Future Enhancements
+## 📈 Technical Highlights
 
-- [ ] Mobile application (React Native)
-- [ ] SMS alert notifications
-- [ ] Machine learning for demand prediction
-- [ ] Integration with IoT water sensors
-- [ ] Multi-language support
-- [ ] Advanced route optimization with traffic data
-- [ ] Blockchain for transparent allocation records
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+- **RESTful API** design
+- **MVC architecture** pattern
+- **Sequelize ORM** for database abstraction
+- **JWT authentication** for stateless sessions
+- **Responsive design** with Tailwind CSS
+- **Real-time data** visualization
+- **Automated weather sync** with cron jobs
+- **Error handling** middleware
+- **Input validation** on all endpoints
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
-## 👥 Authors
+## 👥 Author
 
-- Your Name - Initial work
+Sarthak Wankhade
 
-## 🙏 Acknowledgments
+## 🔗 Links
 
-- Open-Meteo for weather data API
-- React and Node.js communities
-- Contributors and testers
-
-## 📞 Support
-
-For support, email support@watergovernance.com or open an issue in the repository.
+- **GitHub**: https://github.com/sarthakwankhade13/Drought-warning-and-smart-tanker-management
+- **Live Demo**: [Coming Soon]
 
 ---
 
 **Made with ❤️ for sustainable water management**
-=======
-# Drought-warning-and-smart-tanker-management
->>>>>>> 610d941a57a6d7775bd904833ab877d577a177db

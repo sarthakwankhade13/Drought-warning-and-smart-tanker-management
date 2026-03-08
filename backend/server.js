@@ -20,7 +20,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5000'],
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://localhost:5000',
+    process.env.FRONTEND_URL,
+    'https://drought-warning-and-smart-tanker-ma.vercel.app',
+    'https://drought-warning-and-smart-tanker-management-mvracwrre.vercel.app'
+  ].filter(Boolean),
   credentials: true
 }));
 app.use(express.json());
@@ -41,18 +48,24 @@ app.get('/api/health', (req, res) => {
 
 app.use(errorHandler);
 
-// Database sync and server start
-sequelize.sync()
-  .then(() => {
-    console.log('Database connected and synced');
-    console.log('Tables created/updated successfully');
+// Database connection and server start
+async function startServer() {
+  try {
+    // Test database connection
+    await sequelize.authenticate();
+    console.log('✅ Database connected successfully');
+    console.log(`📍 Host: ${process.env.DB_HOST}`);
+    console.log(`📊 Database: ${process.env.DB_NAME}`);
+    
+    // Start server without syncing (tables already exist in Railway)
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-
-      // Start automatic data sync (runs now + every 12 hours)
-      startDataSyncScheduler();
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`🌐 API available`);
     });
-  })
-  .catch(err => {
-    console.error('Database connection failed:', err);
-  });
+  } catch (err) {
+    console.error('❌ Startup failed:', err.message);
+    process.exit(1);
+  }
+}
+
+startServer();
