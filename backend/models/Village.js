@@ -32,12 +32,12 @@ const Village = sequelize.define('Village', {
     allowNull: false
   },
   storage_capacity: {
-    type: DataTypes.DECIMAL(10, 2),
+    type: DataTypes.BIGINT,
     allowNull: false,
     comment: 'in liters'
   },
   current_storage: {
-    type: DataTypes.DECIMAL(10, 2),
+    type: DataTypes.BIGINT,
     allowNull: false,
     comment: 'in liters'
   }
