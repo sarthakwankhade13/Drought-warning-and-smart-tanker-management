@@ -24,9 +24,7 @@ app.use(cors({
     'http://localhost:5173',
     'http://localhost:3000',
     'http://localhost:5000',
-    process.env.FRONTEND_URL,
-    'https://drought-warning-and-smart-tanker-ma.vercel.app',
-    'https://drought-warning-and-smart-tanker-management-mvracwrre.vercel.app'
+    process.env.FRONTEND_URL
   ].filter(Boolean),
   credentials: true
 }));
@@ -64,8 +62,11 @@ async function startServer() {
     console.log('✅ Database connected successfully');
     console.log(`📍 Host: ${process.env.DB_HOST}`);
     console.log(`📊 Database: ${process.env.DB_NAME}`);
-    
-    // Start server without syncing (tables already exist in Railway)
+
+    // Sync models to local database (creates tables if they don't exist)
+    await sequelize.sync({ alter: true });
+    console.log('✅ Database tables synced');
+
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`🌐 API available`);
